@@ -1,0 +1,109 @@
+
+#
+#  Below is the README from libnss-ptdb, from which libnss-afs
+#  was derived.
+#
+
+
+|NSS Module for AFS
++------------------
+
+What is it?
+-----------
+
+This package will let your applications use the AFS-Protection-Database
+(PTDB) as a unix user-database. It consists of 2 binary parts:
+
+1. The ptdbnssd, a daemon that clients may connect to by
+   udp://localhost:6998 to find out the UID for a usename or vice versa
+2. The 'ptdb'-nss-module (libnss-ptdb) that will connect to ptdbnssd,
+   whenever it needs to lookup a username or a UID.
+
+libnss-ptdb will provide user homedirectories which are determined using
+one of 2 methods (see below). Further more it provides a login shell
+which is determined using one of 3 methods.
+
+As a bonus, this package provides a group-nss-plugin, assigning descriptive
+names to PAG-groups (i.e. "AfsPag-1121" ).
+
+My main intention for writing this module was to provide a really simple
+way of providing user accoung information to AFS-client machines. I wanted
+to avoid using ldap withing the Instantafs-Project.
+Visit http://instantafs.cbs.mpg.de for more information about InstantAFS.
+
+What about the homedirectories and login shells?
+------------------------------------------------
+
+Homedirectories are determined by the nss-plugin but the configuration is done
+by ptdbnssd. ptdbnssd accepts the parameters '-H' and '-S' to select a
+method of determining homedirectories/login shells. Whenever a nss-plugin does
+a lookup (either by uid or by name) ptdbnssd sends the current configuration
+(basically: what you defined as -H and -S parameters) to the nss-plugin.
+The Plugin then calculates the homedirectory and login shell on its own.
+
+The advantage of that concept is that filesystem-accesses are always done by
+user programs, not locking ptdbnssd for other lookups. On the other hand,
+it's possible to change the homedir/loginshell-policy by restarting ptdbnssd
+host wide instantaniously.
+
+When using debian, just edit /etc/default/ptdbnssd to change the policy.
+
+What do I have to do to get it working?
+---------------------------------------
+
+Set up the AFS-client on your local computer. You must have a file
+"/etc/openafs/ThisCell" containing *only* the full name of your
+local cell.
+
+You need glibc- and openafs-headers (debian-packages glibc6-dev and
+libopenafs-dev).
+
+Type that:
+
+# make
+# make install
+
+Run the deamon (consider running it as an unprivileged user):
+
+$ /usr/bin/ptdbnssd
+
+Use /usr/lib/libnss-ptdb/nsstest to check, if ptdbnssd and the nss-module
+are working correctly. If not, /usr/lib/libnss-ptdb/cstest helps you
+to find out, if it's the deamon's fault.
+
+Modify /etc/nsswitch.conf , you need to rewrite the "passwd"- and the group-line:
+
+passwd: files ptdb
+group: pag files
+
+Now use 'ls -l /afs/some/directory' to see, if it's working.
+
+Note: 'pag' should be the first group-plugin. The group name of PAG-groups is
+      calculated from their gid which is faster than i.e. a /etc/group-lookup.
+
+Debugging
+---------
+
+After building the package there are two additional binaries:
+   * cstest - Tries to resolve ID or username given at cmdline
+              by calling ptdbnssd directly
+   * nsstest - Tries to resolve ID or username given at cmdline
+               by using nss (libc name resolution).
+
+Last words
+----------
+
+The code was heavily "inspired" by Todd M. Lewis' (*) nss_pts_0.2 - Thank
+you very much, Todd :-) .
+
+(*) can be found @ http://www.unc.edu/~utoddl
+
+If you have any questions, suggestions, patches, ... feel free to send me
+an eMail.
+
+Everything contained in this package is released under the terms of the
+GNU Lesser General Public License (see COPYING).
+
+Good luck,
+
+ -- Frank Burkhardt <burk@cbs.mpg.de>  Fri, 06 Apr 2007 11:45:23 +0200

@@ -1,0 +1,20 @@
+Source: libnss-afs
+Section: net
+Priority: extra
+Maintainer: Adam Megacz <megacz@hcoop.net>
+Build-Depends: debhelper (>= 4.0.0), libopenafs-dev, libc6-dev
+Standards-Version: 3.6.0
+
+Package: libnss-afs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: nscd
+Description: A NSS (Name Service Switch) module for AFS
+ Based on libnss-ptdb by Frank Burkhardt <burk@cbs.mpg.de>.
+ This module provides a NSS module that allows your
+ AFS-Protection-Database (PTDB) to act as a name service.
+ The only information the PTDB provides is a UID <-> username
+ mapping. We have to "guess" all the other passwd-fields.
+ .
+ You should use nscd to reduce network traffic caused by this
+ module.
