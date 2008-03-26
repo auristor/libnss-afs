@@ -1,3 +1,9 @@
+libnss-afs (1.0) unstable; urgency=low
+
+  * official release
+
+ -- megacz <megacz@mire.hcoop.net>  Wed, 26 Mar 2008 12:20:55 -0400
+
 libnss-afs (0.94) unstable; urgency=low
 
   * fix bug that caused crashes after calls to _nss_afs_getgrgid_r()
