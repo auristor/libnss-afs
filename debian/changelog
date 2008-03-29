@@ -1,35 +1,41 @@
+libnss-afs (1.01) unstable; urgency=low
+
+  * add support for non-AFS_LINUX26_ONEGROUP_ENV PAGs
+
+ -- Adam Megacz <megacz@hcoop.net>  Sat, 29 Mar 2008 09:48:23 -0700
+
 libnss-afs (1.0) unstable; urgency=low
 
   * official release
 
- -- megacz <megacz@mire.hcoop.net>  Wed, 26 Mar 2008 12:20:55 -0400
+ -- megacz <megacz@hcoop.net>  Wed, 26 Mar 2008 12:20:55 -0400
 
 libnss-afs (0.94) unstable; urgency=low
 
   * fix bug that caused crashes after calls to _nss_afs_getgrgid_r()
 
- -- Adam Megacz <adam@megacz.com>  Tue, 25 Mar 2008 10:56:14 -0700
+ -- Adam Megacz <megacz@hcoop.net>  Tue, 25 Mar 2008 10:56:14 -0700
 
 libnss-afs (0.93) unstable; urgency=low
 
   * fix a bug in the gr_mem returned by the getgrent() function
 
- -- Adam Megacz <adam@megacz.com>  Sun, 23 Mar 2008 21:58:49 -0700
+ -- Adam Megacz <megacz@hcoop.net>  Sun, 23 Mar 2008 21:58:49 -0700
 
 libnss-afs (0.92) unstable; urgency=low
 
   * fixed PAG ranges to work on Linux
 
- -- Adam Megacz <adam@megacz.com>  Sun, 23 Mar 2008 21:45:25 -0700
+ -- Adam Megacz <megacz@hcoop.net>  Sun, 23 Mar 2008 21:45:25 -0700
 
 libnss-afs (0.91) unstable; urgency=low
 
   * merged libnss_pag into libnss_afs
 
- -- Adam Megacz <adam@megacz.com>  Sun, 23 Mar 2008 21:32:51 -0700
+ -- Adam Megacz <megacz@hcoop.net>  Sun, 23 Mar 2008 21:32:51 -0700
 
 libnss-afs (0.90) unstable; urgency=low
 
   * change to libnss-afs
 
- -- Adam Megacz <adam@megacz.com>  Sun, 23 Mar 2008 16:26:45 -0700
+ -- Adam Megacz <megacz@hcoop.net>  Sun, 23 Mar 2008 16:26:45 -0700

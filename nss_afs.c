@@ -54,6 +54,8 @@
 #define AFS_MAGIC_ANONYMOUS_USERID 32766
 #define MIN_PAG_GID 0x41000000L
 #define MAX_PAG_GID 0x41FFFFFFL
+#define MIN_OLDPAG_GID 0x3f00
+#define MAX_OLDPAG_GID 0xff00
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -293,7 +295,12 @@ int get_shell(char *name, char **buffer, size_t *buflen) {
 enum nss_status _nss_afs_getgrgid_r (gid_t gid, struct group *result,
                                      char *buffer, size_t buflen, int *errnop) {
   int length;
-  if ( gid < MIN_PAG_GID  || gid > MAX_PAG_GID) {
+  int showgid = 0;
+  if (gid >= MIN_PAG_GID && gid <= MAX_PAG_GID) {
+    showgid = gid-MIN_PAG_GID;
+  } else if (gid >= MIN_OLDPAG_GID && gid <= MAX_OLDPAG_GID) {
+    showgid = gid-MIN_OLDPAG_GID;
+  } else {
     *errnop=ENOENT;
     return NSS_STATUS_NOTFOUND;
   }
@@ -301,7 +308,7 @@ enum nss_status _nss_afs_getgrgid_r (gid_t gid, struct group *result,
     result->gr_gid=gid;
 
     result->gr_name=buffer;
-    length=snprintf(buffer,buflen,"AfsPag-%x",gid-MIN_PAG_GID);
+    length=snprintf(buffer,buflen,"AfsPag-%x",showgid);
     
     if (length < 0) break;
     length += 1;
