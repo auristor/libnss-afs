@@ -1,3 +1,10 @@
+libnss-afs (1.03) unstable; urgency=low
+
+  * factor out fill_result_buf() to eliminate an extra call to the ptserver
+  * reformatting and commenting
+
+ -- megacz <megacz@hcoop.net>  Sun, 30 Mar 2008 23:48:41 -0400
+
 libnss-afs (1.02) unstable; urgency=high
 
   * fix bug that would cause getpwnam() to fail for users with a ~/.loginshell

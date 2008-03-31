@@ -1,17 +1,37 @@
 
-/*
- * libnss_afs.c
+/*****************************************************************************
+ * libnss-afs (nss_afs.c)
  *
  * Copyright 2008, licensed under GNU Library General Public License (LGPL)
  * see COPYING file for details
  *
+ * by Adam Megacz <megacz@hcoop.net>
  * derived from Frank Burkhardt's libnss_ptdb,
  * which was derived from Todd M. Lewis' libnss_pts
- */
+ *****************************************************************************/
 
 /*
- * if you are reading this code for the first time, start at the
- * bottom and work your way upwards
+ *  If you are reading this code for the first time, read the rest of
+ *  this comment block, then start at the bottom of the file and work
+ *  your way upwards.
+ *
+ *  All functions which return an int use zero to signal success --
+ *  except cpstr(), which returns zero on *failure*.  This should be
+ *  fixed.
+ *
+ *  A note about memory allocation:
+ *
+ *    NSS plugins generally ought to work without attempting to call
+ *    malloc() (which may fail).  Therefore, glibc allocates a buffer
+ *    before calling NSS library functions, and passes that buffer to
+ *    the NSS library; library functions store their results in the
+ *    buffer and return pointers into that buffer.
+ *
+ *    The convention used throughout this library is to pass around a
+ *    char** which points to a pointer to the first unused byte in the
+ *    provided buffer, and a size_t* which points to an int indicating
+ *    how many bytes are left between the char** and the end of the
+ *    available region.
  */
 
 #include <ctype.h>
@@ -44,50 +64,51 @@
 #include <afs/pterror.h>
 #include <afs/stds.h>
 
-#define HOMEDIR_AUTO 0
+#define HOMEDIR_AUTO      0
 #define HOMEDIR_ADMINLINK 1
-#define HOMEDIR_PREFIX 2
-#define SHELL_BASH 0
-#define SHELL_ADMINLINK 1
-#define SHELL_USERLINK 2
+#define HOMEDIR_PREFIX    2
+#define SHELL_BASH        0
+#define SHELL_ADMINLINK   1
+#define SHELL_USERLINK    2
 
 #define AFS_MAGIC_ANONYMOUS_USERID 32766
-#define MIN_PAG_GID 0x41000000L
-#define MAX_PAG_GID 0x41FFFFFFL
-#define MIN_OLDPAG_GID 0x3f00
-#define MAX_OLDPAG_GID 0xff00
+#define MIN_PAG_GID                0x41000000L
+#define MAX_PAG_GID                0x41FFFFFFL
+#define MIN_OLDPAG_GID             0x3f00
+#define MAX_OLDPAG_GID             0xff00
 
-#define MAX_CELLNAME 256
+#define MAXCELLNAMELEN             256
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-extern int cpstr( char *str, char **buf, size_t *buflen);
 
 extern struct ubik_client *pruclient;
 
 int  afs_initialized = 0;
-char cellname[MAX_CELLNAME];
-char homedir_prefix[300];
+char cellname[MAXCELLNAMELEN];
+char homedir_prefix[MAXPATHLEN];
 int  homedir_prefix_len=0;
 char homedirs_method=0;
 char shells_method=0;
 
+/**
+ *  The cpstr() function copies a null-terminated string from str*
+ *  (the first argument) into buf and updates both buf and buflen.  If
+ *  the string would overflow the buffer, no action is taken.  The
+ *  number of bytes copied is returned (zero indicates failure).
+ */
 int cpstr( char *str, char **buf, size_t *buflen) {
-    int len = strlen(str);
-    if ( len >= *buflen-1 ) return 0;
-    strcpy(*buf,str);
-    *buflen -= len + 1;
-    *buf    += len + 1;
-    return len;
+  int len = strlen(str);
+  if ( len >= *buflen-1 ) return 0;
+  strcpy(*buf,str);
+  *buflen -= len + 1;
+  *buf    += len + 1;
+  return len;
 }
 
-
-/*
+/**
  * Look up the name corresponding to uid, store in buffer.
- * 
- * returns NSS_STATUS_SUCCESS, NSS_STATUS_NOTFOUND, or NSS_STATUS_UNAVAIL
  */
-int ptsid2name(int uid, char **buffer, int *buflen) {
+enum nss_status ptsid2name(int uid, char **buffer, int *buflen) {
   int ret, i;
   idlist lid;
   namelist lnames;
@@ -128,12 +149,10 @@ int ptsid2name(int uid, char **buffer, int *buflen) {
   return ret;
 }
 
-/*
- * Look up the uid corresponding to name, stores it in *uid.
- * 
- * returns NSS_STATUS_SUCCESS, NSS_STATUS_NOTFOUND, or NSS_STATUS_UNAVAIL
+/**
+ * Look up the uid corresponding to name in ptserver.
  */
-int ptsname2id(char *name, uid_t* uid) {
+enum nss_status ptsname2id(char *name, uid_t* uid) {
   int res;
   idlist lid;
   namelist lnames;
@@ -164,8 +183,8 @@ int ptsname2id(char *name, uid_t* uid) {
   return NSS_STATUS_SUCCESS;
 }
 
-/*
- *  returns zero on success
+/**
+ *  Initialize the library; returns zero on success
  */
 int init_afs() {
   FILE *thiscell;
@@ -178,12 +197,13 @@ int init_afs() {
     homedirs_method=HOMEDIR_PREFIX;
     shells_method=SHELL_USERLINK;
 
-    len = snprintf(cellname, MAX_CELLNAME, "%s/ThisCell", AFSDIR_CLIENT_ETC_DIRPATH);
-    if (len < 0 || len >= MAX_CELLNAME) return -1;
+    len = snprintf(cellname, MAXCELLNAMELEN,
+                   "%s/ThisCell", AFSDIR_CLIENT_ETC_DIRPATH);
+    if (len < 0 || len >= MAXCELLNAMELEN) return -1;
 
     thiscell=fopen(cellname,"r");
     if (thiscell == NULL) break;
-    len=fread(cellname,1,MAX_CELLNAME,thiscell);
+    len=fread(cellname,1,MAXCELLNAMELEN,thiscell);
     if (!feof(thiscell)) {
       // Cellname too long
       fclose(thiscell);
@@ -210,12 +230,9 @@ int init_afs() {
 }
 
 
-/*
-  result=get_homedir(char *name,char **buffer,size_t *buflen)
-  Writes the guessed Homedirectory of a given user 'name' into
-  '*buffer', increasing *buflen accordingly.
-  result == 1, only if the buffer was big enough.
-*/
+/**
+ * Retrieves the homedir for a given user; returns 0 on success.
+ */
 int get_homedir(char *name, char **buffer, size_t *buflen) {
   char buf[256];
   int temp;
@@ -252,6 +269,9 @@ int get_homedir(char *name, char **buffer, size_t *buflen) {
   return 0;
 }
 
+/**
+ * Retrieves the shell for a given user; returns 0 on success.
+ */
 int get_shell(char *name, char **buffer, size_t *buflen) {
   char buf[256];
   int temp;
@@ -287,11 +307,16 @@ int get_shell(char *name, char **buffer, size_t *buflen) {
 }
 
 
-/**
- *  this function is invoked by glibc to resolve the name of a numeric groupid
+/*
+ * This function is exported; glibc will invoke it in order to find
+ * the name and list of members of a group specified by a numerical
+ * groupid.
  */
-enum nss_status _nss_afs_getgrgid_r (gid_t gid, struct group *result,
-                                     char *buffer, size_t buflen, int *errnop) {
+enum nss_status _nss_afs_getgrgid_r (gid_t gid,
+                                     struct group *result,
+                                     char *buffer,
+                                     size_t buflen,
+                                     int *errnop) {
   int length;
   int showgid = 0;
   if (gid >= MIN_PAG_GID && gid <= MAX_PAG_GID) {
@@ -329,36 +354,26 @@ enum nss_status _nss_afs_getgrgid_r (gid_t gid, struct group *result,
   return NSS_STATUS_UNAVAIL;
 }
 
-/*
-  This is a the ptdb-getpwuid-function.
-*/
-enum nss_status _nss_afs_getpwuid_r (uid_t uid, struct passwd *result_buf, char *buffer, size_t buflen, int *errnop) {
-  int temp;
-
-  if (init_afs()) return NSS_STATUS_UNAVAIL;
-  
-  result_buf->pw_name = buffer;
-  temp = ptsid2name( uid, &buffer, &buflen);
-  if (temp != NSS_STATUS_SUCCESS) {
-    *errnop = ENOENT;
-    return temp;
-  }
-
-#ifdef LIMIT_USERNAME_CHARS
-  if ( strlen(result_buf->pw_name) > LIMIT_USERNAME_CHARS ) {
-    result_buf->pw_name[LIMIT_USERNAME_CHARS] = '\0';
-    buflen = buflen + ( buffer - &result_buf->pw_name[LIMIT_USERNAME_CHARS+1] );
-    buffer = &result_buf->pw_name[LIMIT_USERNAME_CHARS+1];
-  }
-#endif
-
+/**
+ * A helper function to fill in the fields of "struct passwd"; used by
+ * both _nss_afs_getpwuid_r() and _nss_afs_getpwnam_r().
+ */
+enum nss_status fill_result_buf(uid_t uid,
+                                char* name,
+                                struct passwd *result_buf,
+                                char *buffer,
+                                size_t buflen,
+                                int *errnop) {
+  result_buf->pw_name = name;
   do {
     /* set the password to "x" */
     result_buf->pw_passwd = buffer;
     if ( ! cpstr("x",&buffer, &buflen) ) break;
+
     /* the uid and gid are both the uid passed in */
     result_buf->pw_uid = uid;
     result_buf->pw_gid = 65534;
+
     /* make the gecos the same as the PTS name */
     result_buf->pw_gecos = buffer;
     if ( ! cpstr(result_buf->pw_name, &buffer, &buflen ) ) break;
@@ -380,10 +395,49 @@ enum nss_status _nss_afs_getpwuid_r (uid_t uid, struct passwd *result_buf, char 
 }
 
 
-/*
- * This is the ptdb-getpwnam-function.
+/**
+ * This function is exported; glibc will invoke it in order to gather
+ * the user information (userid, homedir, shell) associated with a
+ * numerical userid.
  */
-enum nss_status _nss_afs_getpwnam_r (char *name, struct passwd *result_buf, char *buffer, size_t buflen, int *errnop) {
+enum nss_status _nss_afs_getpwuid_r (uid_t uid,
+                                     struct passwd *result_buf,
+                                     char *buffer,
+                                     size_t buflen,
+                                     int *errnop) {
+  int temp;
+  char* name;
+
+  if (init_afs()) return NSS_STATUS_UNAVAIL;
+
+  name = buffer;
+  temp = ptsid2name( uid, &buffer, &buflen);
+  if (temp != NSS_STATUS_SUCCESS) {
+    *errnop = ENOENT;
+    return temp;
+  }
+
+#ifdef LIMIT_USERNAME_CHARS
+  if ( strlen(result_buf->pw_name) > LIMIT_USERNAME_CHARS ) {
+    result_buf->pw_name[LIMIT_USERNAME_CHARS] = '\0';
+    buflen = buflen + ( buffer - &result_buf->pw_name[LIMIT_USERNAME_CHARS+1] );
+    buffer = &result_buf->pw_name[LIMIT_USERNAME_CHARS+1];
+  }
+#endif
+
+  return fill_result_buf(uid, name, result_buf, buffer, buflen, errnop);
+}
+
+/**
+ * This function is exported; glibc will invoke it in order to gather
+ * the user information (userid, homedir, shell) associated with a
+ * username.
+ */
+enum nss_status _nss_afs_getpwnam_r (char *name,
+                                     struct passwd *result_buf,
+                                     char *buffer,
+                                     size_t buflen,
+                                     int *errnop) {
   uid_t uid;
   int temp;
 
@@ -395,7 +449,6 @@ enum nss_status _nss_afs_getpwnam_r (char *name, struct passwd *result_buf, char
     return temp;
   }
 
-  // This causes an additional PTDB-lookup and should be removed in the future
-  return _nss_afs_getpwuid_r (uid, result_buf,buffer,buflen, errnop);
+  return fill_result_buf(uid, name, result_buf, buffer, buflen, errnop);
 }
 
