@@ -57,6 +57,8 @@
 #define MIN_OLDPAG_GID 0x3f00
 #define MAX_OLDPAG_GID 0xff00
 
+#define MAX_CELLNAME 256
+
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 extern int cpstr( char *str, char **buf, size_t *buflen);
@@ -64,7 +66,7 @@ extern int cpstr( char *str, char **buf, size_t *buflen);
 extern struct ubik_client *pruclient;
 
 int  afs_initialized = 0;
-char cellname[256];
+char cellname[MAX_CELLNAME];
 char homedir_prefix[300];
 int  homedir_prefix_len=0;
 char homedirs_method=0;
@@ -175,10 +177,13 @@ int init_afs() {
   do {
     homedirs_method=HOMEDIR_PREFIX;
     shells_method=SHELL_USERLINK;
-    
-    thiscell=fopen("/etc/openafs/ThisCell","r");
+
+    len = snprintf(cellname, MAX_CELLNAME, "%s/ThisCell", AFSDIR_CLIENT_ETC_DIRPATH);
+    if (len < 0 || len >= MAX_CELLNAME) return -1;
+
+    thiscell=fopen(cellname,"r");
     if (thiscell == NULL) break;
-    len=fread(cellname,1,256,thiscell);
+    len=fread(cellname,1,MAX_CELLNAME,thiscell);
     if (!feof(thiscell)) {
       // Cellname too long
       fclose(thiscell);
@@ -187,6 +192,7 @@ int init_afs() {
       break;
     }
     fclose(thiscell);
+
     if (cellname[len-1] == '\n') len--;
     cellname[len]='\0';
     sprintf(homedir_prefix,"/afs/%s/user/",cellname);
@@ -256,35 +262,27 @@ int get_shell(char *name, char **buffer, size_t *buflen) {
 
   switch (shells_method) {
     case SHELL_BASH:
-      if (!cpstr("/bin/bash",buffer, buflen)) return -1;
       break;
 
     case SHELL_ADMINLINK:
-      if ( snprintf(buf,256,"/afs/%s/admin/shells/%s",cellname,name) > 0 ) {
-        temp=readlink(buf,*buffer,*buflen);
-        if ( temp > -1) {
-          b[temp]=0;
-          *buflen = *buflen - temp - 1;
-          return -1;
-        }
-      }
-      if (! cpstr("/bin/bash",buffer,buflen) )
-        return -1;
-      break;
+      if (snprintf(buf,256,"/afs/%s/admin/shells/%s",cellname,name)<=0) break;
+      temp = readlink(buf,*buffer,*buflen);
+      if (temp < 0) break;
+      b[temp]=0;
+      *buflen = *buflen - temp - 1;
+      return 0;
 
     case SHELL_USERLINK:
-      if (get_homedir(name, &bufx, &bufxlen)) return -1;
-      strncpy(buf+strlen(buf),"/.loginshell",bufxlen);
-      temp=readlink(buf,*buffer,*buflen);
-      if ( temp > -1) {
-        b[temp]=0;
-        *buflen = *buflen - temp - 1;
-        return -1;
-      }
-      if (! cpstr("/bin/bash",buffer,buflen) )
-        return -1;
-      break;
+      if (get_homedir(name, &bufx, &bufxlen)) break;
+      if (strncpy(buf+strlen(buf),"/.loginshell",bufxlen)<=0) break;
+      temp = readlink(buf,*buffer,*buflen);
+      if (temp < 0) break;
+      b[temp]=0;
+      *buflen = *buflen - temp - 1;
+      return 0;
   }
+  if (! cpstr("/bin/bash",buffer,buflen) )
+    return -1;
   return 0;
 }
 

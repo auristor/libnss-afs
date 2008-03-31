@@ -1,3 +1,11 @@
+libnss-afs (1.02) unstable; urgency=high
+
+  * fix bug that would cause getpwnam() to fail for users with a ~/.loginshell
+  * create a #define for MAX_CELLNAME
+  * don't hardcode "/etc/openafs"; use AFSDIR_CLIENT_ETC_DIRPATH instead
+
+ -- Adam Megacz <megacz@hcoop.net>  Sun, 30 Mar 2008 20:07:30 -0700
+
 libnss-afs (1.01) unstable; urgency=low
 
   * add support for non-AFS_LINUX26_ONEGROUP_ENV PAGs
