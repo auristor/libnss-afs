@@ -1,3 +1,10 @@
+libnss-afs (1.04) unstable; urgency=medium
+
+  * librx expects to be able to mutate the char*'s we pass it so strcpy()
+    the name argument in ptsnametoid().
+
+ -- megacz <megacz@hcoop.net>  Sun, 06 Apr 2008 23:09:46 -0400
+
 libnss-afs (1.03) unstable; urgency=low
 
   * factor out fill_result_buf() to eliminate an extra call to the ptserver

@@ -78,6 +78,7 @@
 #define MAX_OLDPAG_GID             0xff00
 
 #define MAXCELLNAMELEN             256
+#define MAXUSERNAMELEN             256
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -156,6 +157,7 @@ enum nss_status ptsname2id(char *name, uid_t* uid) {
   int res;
   idlist lid;
   namelist lnames;
+  char uname[MAXUSERNAMELEN];
 
   init_afs();
   
@@ -168,7 +170,9 @@ enum nss_status ptsname2id(char *name, uid_t* uid) {
 
   lid.idlist_val = 0;
   lid.idlist_len = 0;
-  lnames.namelist_val = (prname*)name;
+  lnames.namelist_val = (prname*)uname;
+  // apparently ubik expects to be able to modify this?
+  strncpy(uname, name, MAXUSERNAMELEN);
   lnames.namelist_len = 1;
 
   if (ubik_Call(PR_NameToID,pruclient,0,&lnames,&lid) != PRSUCCESS) {
