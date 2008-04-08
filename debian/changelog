@@ -1,3 +1,11 @@
+libnss-afs (1.05) unstable; urgency=low
+
+  * set rx_SetRxDeadTime to 5 seconds to avoid stalling forever
+  * deliberately fail all lookups if stat("/afs/$CELL/") does not succeed
+    so we don't delay bootup/shutdown when the network is unreachable.
+
+ -- megacz <megacz@hcoop.net>  Tue, 08 Apr 2008 15:59:23 -0400
+
 libnss-afs (1.04) unstable; urgency=medium
 
   * librx expects to be able to mutate the char*'s we pass it so strcpy()

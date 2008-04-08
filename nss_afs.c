@@ -52,6 +52,7 @@
 #include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -87,6 +88,7 @@ extern struct ubik_client *pruclient;
 int  afs_initialized = 0;
 char cellname[MAXCELLNAMELEN];
 char homedir_prefix[MAXPATHLEN];
+char cell_root[MAXPATHLEN];
 int  homedir_prefix_len=0;
 char homedirs_method=0;
 char shells_method=0;
@@ -193,9 +195,14 @@ enum nss_status ptsname2id(char *name, uid_t* uid) {
 int init_afs() {
   FILE *thiscell;
   int len;
+  struct stat statbuf;
 
-  if (afs_initialized) return 0;
-
+  if (afs_initialized) {
+    /* wait until /afs/@cell/ appears as a proxy for "the network is up" */
+    if (stat(cell_root, &statbuf)) return -1;
+    return 0;
+  }
+  
   if (pthread_mutex_lock(&mutex)) return -1;
   do {
     homedirs_method=HOMEDIR_PREFIX;
@@ -219,9 +226,17 @@ int init_afs() {
 
     if (cellname[len-1] == '\n') len--;
     cellname[len]='\0';
+
+    /* wait until /afs/@cell/ appears as a proxy for "the network is up" */
+    sprintf(cell_root,"/afs/%s/",cellname);
+    if (stat(cell_root, &statbuf)) break;
+
     sprintf(homedir_prefix,"/afs/%s/user/",cellname);
     homedir_prefix_len=strlen(homedir_prefix);
-    
+
+    /* time out requests after 5 seconds to avoid hanging things */
+    rx_SetRxDeadTime(5);    
+
     if (pr_Initialize(0L,AFSDIR_CLIENT_ETC_DIRPATH, 0)) break;
     
     afs_initialized = 1;
