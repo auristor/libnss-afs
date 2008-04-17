@@ -22,7 +22,7 @@ libnss_afs.so.2: nss_afs.o
 	$(CC) -shared -o libnss_afs.so.2 nss_afs.o \
 	-Wl,-soname,libnss_afs.so.2 $(LDFLAGS)
 
-nss_afs_test: nss_afs.o
+nss_afs_test: nss_afs.o nss_afs_test.c
 	$(CC) -o nss_afs_test nss_afs_test.c nss_afs.o $(LDFLAGS)
 
 install:
