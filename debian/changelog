@@ -1,3 +1,9 @@
+libnss-afs (1.06) unstable; urgency=low
+
+  * clean up debianization
+
+ -- Adam Megacz <megacz@hcoop.net>  Thu, 17 Apr 2008 01:59:19 -0400
+
 libnss-afs (1.05) unstable; urgency=low
 
   * set rx_SetRxDeadTime to 5 seconds to avoid stalling forever

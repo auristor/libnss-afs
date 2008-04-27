@@ -1,0 +1,9 @@
+
+# we link against the static libraries in libopenafs-dev, which are compiled non-PIC
+libnss-afs source: shlib-with-non-pic-code lib/libnss_afs.so.2.0.0
+libnss-afs binary: shlib-with-non-pic-code lib/libnss_afs.so.2.0.0
+
+# this library exports only interfaces standardized by glibc; there will never be
+# an incompatible version
+libnss-afs source: package-name-doesnt-match-sonames
+libnss-afs binary: package-name-doesnt-match-sonames

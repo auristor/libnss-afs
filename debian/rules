@@ -1,13 +1,8 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
-
-
-
 
 CFLAGS = -Wall -g
 
@@ -23,30 +18,20 @@ endif
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	# Add here commands to configure the package.
-
 	touch configure-stamp
-
 
 build: build-stamp
 
 build-stamp: configure-stamp 
 	dh_testdir
-
-	# Add here commands to compile the package.
 	$(MAKE)
-	#/usr/bin/docbook-to-man debian/libnss-afs.sgml > libnss-afs.1
-
 	touch build-stamp
 
 clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
 	-$(MAKE) clean
-
 	dh_clean 
 
 install: build
@@ -54,11 +39,12 @@ install: build
 	dh_testroot
 	dh_clean -k 
 	dh_installdirs
-
-	# Add here commands to install the package into debian/libnss-afs.
 	mkdir -p $(CURDIR)/debian/libnss-afs
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/libnss-afs
-	#install -m 644 default $(CURDIR)/debian/libnss-afs/etc/default/afsnssd
+	mkdir -p $(CURDIR)/debian/libnss-afs/DEBIAN
+	install -m644 debian/shlibs $(CURDIR)/debian/libnss-afs/DEBIAN
+	mkdir -p $(CURDIR)/debian/libnss-afs/usr/share/lintian/overrides/
+	cp debian/source.lintian-overrides $(CURDIR)/debian/libnss-afs/usr/share/lintian/overrides/libnss-afs
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -78,7 +64,7 @@ binary-arch: build install
 	dh_compress
 	dh_fixperms
 	dh_installdeb
-	dh_shlibdeps
+	dh_shlibdeps $(CURDIR)/debian/lib/*.so*
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
