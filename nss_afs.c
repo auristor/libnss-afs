@@ -405,6 +405,14 @@ enum nss_status fill_result_buf(uid_t uid,
     result_buf->pw_shell = buffer;
     if ( get_shell(result_buf->pw_name,&buffer,&buflen) ) break;
 
+#ifdef LIMIT_USERNAME_CHARS
+    if ( strlen(result_buf->pw_name) > LIMIT_USERNAME_CHARS ) {
+      result_buf->pw_name[LIMIT_USERNAME_CHARS] = '\0';
+      buflen = buflen + ( buffer - &result_buf->pw_name[LIMIT_USERNAME_CHARS+1] );
+      buffer = &result_buf->pw_name[LIMIT_USERNAME_CHARS+1];
+    }
+#endif
+
     *errnop = errno;
     return NSS_STATUS_SUCCESS;
   } while(0);
@@ -435,14 +443,6 @@ enum nss_status _nss_afs_getpwuid_r (uid_t uid,
     *errnop = ENOENT;
     return temp;
   }
-
-#ifdef LIMIT_USERNAME_CHARS
-  if ( strlen(result_buf->pw_name) > LIMIT_USERNAME_CHARS ) {
-    result_buf->pw_name[LIMIT_USERNAME_CHARS] = '\0';
-    buflen = buflen + ( buffer - &result_buf->pw_name[LIMIT_USERNAME_CHARS+1] );
-    buffer = &result_buf->pw_name[LIMIT_USERNAME_CHARS+1];
-  }
-#endif
 
   return fill_result_buf(uid, name, result_buf, buffer, buflen, errnop);
 }
