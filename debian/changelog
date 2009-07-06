@@ -1,3 +1,9 @@
+libnss-afs (1.08) unstable; urgency=high
+
+  * fix segfault with lenny libc6 by linking to pthreads version
+
+ -- Adam Megacz <megacz@hcoop.net>  Mon, 29 Jun 2009 11:35:54 -0700
+
 libnss-afs (1.07) unstable; urgency=low
 
   * fix highly-improbable segfault

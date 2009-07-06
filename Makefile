@@ -13,9 +13,12 @@ CFLAGS=-I$(AFSROOT)/include -DHAVE_NSS_H -DLIMIT_USERNAME_CHARS=20 -fPIC
 
 all: $(LIBNAMES) nss_afs_test
 
-LDFLAGS=-L$(AFSROOT)/lib/afs -L$(AFSROOT)/lib -lprot \
-	-lubik -lauth -lrxkad -lrxstat -lrx -llwp -ldes -lcom_err -laudit \
-	$(AFSROOT)/lib/afs/util.a -lsys -lnsl $(EXTRALIBS)
+#-lprot \
+#	-lubik -lauth -lrxkad -lrxstat -lrx -ldes -lcom_err -laudit
+# $(AFSROOT)/lib/afs/util.a
+
+LDFLAGS=-L$(AFSROOT)/lib/afs -L$(AFSROOT)/lib -lafsauthent -lafsrpc -lpthread \
+	 -lsys -lnsl $(EXTRALIBS) -g
 
 nss_afs.o: nss_afs.c
 	$(CC) $(CFLAGS) -c nss_afs.c
