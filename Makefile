@@ -17,7 +17,7 @@ all: $(LIBNAMES) nss_afs_test
 #	-lubik -lauth -lrxkad -lrxstat -lrx -ldes -lcom_err -laudit
 # $(AFSROOT)/lib/afs/util.a
 
-LDFLAGS=-L$(AFSROOT)/lib/afs -L$(AFSROOT)/lib -lafsauthent -lafsrpc -lpthread \
+LDFLAGS=-L$(AFSROOT)/lib/afs -L$(AFSROOT)/lib -lafsauthent_pic -lafsrpc_pic -lpthread \
 	 -lsys -lnsl $(EXTRALIBS) -g
 
 nss_afs.o: nss_afs.c

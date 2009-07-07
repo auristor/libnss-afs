@@ -2,7 +2,7 @@ Source: libnss-afs
 Section: libs
 Priority: extra
 Maintainer: Adam Megacz <megacz@hcoop.net>
-Build-Depends: debhelper (>= 4.0.0), libopenafs-dev, libc6-dev (>= 2.3.6)
+Build-Depends: debhelper (>= 4.0.0), libopenafs-dev (>= 1.4.10), libc6-dev (>= 2.3.6)
 Standards-Version: 3.7.2
 
 Package: libnss-afs

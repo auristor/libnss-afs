@@ -1,3 +1,9 @@
+libnss-afs (1.09) unstable; urgency=low
+
+  * link to _pic versions of libraries for amd64 compatability
+
+ -- Adam Megacz <megacz@hcoop.net>  Tue, 07 Jul 2009 18:05:25 -0400
+
 libnss-afs (1.08) unstable; urgency=high
 
   * fix segfault with lenny libc6 by linking to pthreads version
