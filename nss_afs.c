@@ -173,7 +173,7 @@ enum nss_status ptsname2id(char *name, uid_t* uid) {
 
   lid.idlist_val = 0;
   lid.idlist_len = 0;
-  lnames.namelist_val = (prname*)uname;
+  lnames.namelist_val = (prname*)(&uname);
   // apparently ubik expects to be able to modify this?
   strncpy(uname, name, MAXUSERNAMELEN);
   lnames.namelist_len = 1;
