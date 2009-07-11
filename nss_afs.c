@@ -212,7 +212,7 @@ int init_afs() {
 
     len = snprintf(cellname, MAXCELLNAMELEN,
                    "%s/ThisCell", AFSDIR_CLIENT_ETC_DIRPATH);
-    if (len < 0 || len >= MAXCELLNAMELEN) return -1;
+    if (len < 0 || len >= MAXCELLNAMELEN) break;
 
     thiscell=fopen(cellname,"r");
     if (thiscell == NULL) break;
