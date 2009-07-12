@@ -1,3 +1,15 @@
+libnss-afs (1.10) unstable; urgency=low
+
+  * remember to release mutex if we fail due to empty ThisCell
+  
+  * set namelist_val to &uname rather than just uname
+
+  * perror() should not be given a trailing \n
+
+  * build with patched libafsrpc_pic.a for fast-fail ENETUNREACH
+
+ -- Adam Megacz <megacz@hcoop.net>  Sat, 11 Jul 2009 16:30:29 -0700
+
 libnss-afs (1.09) unstable; urgency=low
 
   * link to _pic versions of libraries for amd64 compatability
