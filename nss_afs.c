@@ -131,7 +131,7 @@ enum nss_status ptsid2name(int uid, char **buffer, int *buflen) {
   lnames.namelist_len = 0;
 
   if (ubik_Call(PR_IDToName,pruclient,0,&lid,&lnames) != PRSUCCESS) {
-    perror("ubik_Call() in ptsid2name() failed\n");
+    perror("ubik_Call() in ptsid2name() failed");
     pthread_mutex_unlock(&mutex);
     return NSS_STATUS_UNAVAIL;
   }
@@ -179,7 +179,7 @@ enum nss_status ptsname2id(char *name, uid_t* uid) {
   lnames.namelist_len = 1;
 
   if (ubik_Call(PR_NameToID,pruclient,0,&lnames,&lid) != PRSUCCESS) {
-    perror("ubik_Call() in ptsname2id() failed\n");
+    perror("ubik_Call() in ptsname2id() failed");
     pthread_mutex_unlock(&mutex);
     return NSS_STATUS_UNAVAIL;
   }
@@ -240,7 +240,7 @@ int init_afs() {
     rx_SetRxDeadTime(5);    
 
     if (pr_Initialize(0L,AFSDIR_CLIENT_ETC_DIRPATH, 0)) {
-      perror("pr_Initialize() failed\n");
+      perror("pr_Initialize() failed");
       break;
     }
     
