@@ -1,3 +1,9 @@
+libnss-afs (2.0) unstable; urgency=low
+
+  * return NOT_FOUND if invoked outside of nscd
+
+ -- Adam Megacz <adam@megacz.com>  Tue,  8 Dec 2009 13:48:04 -0800
+
 libnss-afs (1.10) unstable; urgency=low
 
   * remember to release mutex if we fail due to empty ThisCell

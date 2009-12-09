@@ -116,7 +116,7 @@ enum nss_status ptsid2name(int uid, char **buffer, int *buflen) {
   idlist lid;
   namelist lnames;
 
-  init_afs();
+  if (init_afs()) return NSS_STATUS_UNAVAIL;
 
   if (uid==AFS_MAGIC_ANONYMOUS_USERID) {
     if (!cpstr("anonymous", buffer, buflen)) return NSS_STATUS_UNAVAIL;
@@ -162,7 +162,7 @@ enum nss_status ptsname2id(char *name, uid_t* uid) {
   namelist lnames;
   char uname[MAXUSERNAMELEN];
 
-  init_afs();
+  if (init_afs()) return NSS_STATUS_UNAVAIL;
   
   if (!strcmp(name,"anonymous")) {
     *uid = AFS_MAGIC_ANONYMOUS_USERID;
@@ -199,11 +199,35 @@ int init_afs() {
   int len;
   struct stat statbuf;
 
+  char buf[6];
+  int fd;
+  int pos;
+
   if (afs_initialized) {
     /* wait until /afs/@cell/ appears as a proxy for "the network is up" */
     if (stat(cell_root, &statbuf)) return -1;
     return 0;
   }
+
+  // check to make sure that we are running inside nscd
+  pos = 0;
+  fd = open("/proc/self/cmdline", O_RDONLY);
+  if (fd==-1) return -1;
+  while(1) {
+    int numread;
+    numread = read(fd, buf+pos, 1);
+    if (buf[ (pos+5)%6 ] == 'd' &&
+        buf[ (pos+4)%6 ] == 'c' &&
+        buf[ (pos+3)%6 ] == 's' &&
+        buf[ (pos+2)%6 ] == 'n' &&
+        (buf[(pos+1)%6 ] == '/' || pos==4) &&
+        (buf[(pos+0)%6 ] ==  0  || numread==-1)
+        )
+      break;
+    pos = (pos+1)%6;
+    if (numread==0) { close(fd); return -1; }
+  }
+  close(fd);
   
   if (pthread_mutex_lock(&mutex)) return -1;
   do {
