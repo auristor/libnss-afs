@@ -131,7 +131,7 @@ enum nss_status ptsid2name(int uid, char **buffer, int *buflen) {
   lnames.namelist_len = 0;
 
   if (ubik_Call(PR_IDToName,pruclient,0,&lid,&lnames) != PRSUCCESS) {
-    perror("ubik_Call() in ptsid2name() failed");
+    perror("ubik_Call() in ptsid2name() failed\n");
     pthread_mutex_unlock(&mutex);
     return NSS_STATUS_UNAVAIL;
   }
@@ -173,13 +173,13 @@ enum nss_status ptsname2id(char *name, uid_t* uid) {
 
   lid.idlist_val = 0;
   lid.idlist_len = 0;
-  lnames.namelist_val = (prname*)(&uname);
+  lnames.namelist_val = (prname*)uname;
   // apparently ubik expects to be able to modify this?
   strncpy(uname, name, MAXUSERNAMELEN);
   lnames.namelist_len = 1;
 
   if (ubik_Call(PR_NameToID,pruclient,0,&lnames,&lid) != PRSUCCESS) {
-    perror("ubik_Call() in ptsname2id() failed");
+    perror("ubik_Call() in ptsname2id() failed\n");
     pthread_mutex_unlock(&mutex);
     return NSS_STATUS_UNAVAIL;
   }
@@ -212,7 +212,7 @@ int init_afs() {
 
     len = snprintf(cellname, MAXCELLNAMELEN,
                    "%s/ThisCell", AFSDIR_CLIENT_ETC_DIRPATH);
-    if (len < 0 || len >= MAXCELLNAMELEN) break;
+    if (len < 0 || len >= MAXCELLNAMELEN) return -1;
 
     thiscell=fopen(cellname,"r");
     if (thiscell == NULL) break;
@@ -240,7 +240,7 @@ int init_afs() {
     rx_SetRxDeadTime(5);    
 
     if (pr_Initialize(0L,AFSDIR_CLIENT_ETC_DIRPATH, 0)) {
-      perror("pr_Initialize() failed");
+      perror("pr_Initialize() failed\n");
       break;
     }
     
