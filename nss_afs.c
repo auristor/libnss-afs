@@ -388,7 +388,7 @@ enum nss_status _nss_afs_getgrgid_r (gid_t gid,
 
     result->gr_passwd=buffer;
 
-    if (!cpstr("x",&buffer,&buflen)) break;
+    if (!cpstr("z",&buffer,&buflen)) break;
 
     if (buflen < sizeof(char*)) break;
     result->gr_mem=buffer;
@@ -414,9 +414,9 @@ enum nss_status fill_result_buf(uid_t uid,
                                 int *errnop) {
   result_buf->pw_name = name;
   do {
-    /* set the password to "x" */
+    /* set the password to "z"; we can't use "x" because of pam_unix.so */
     result_buf->pw_passwd = buffer;
-    if ( ! cpstr("x",&buffer, &buflen) ) break;
+    if ( ! cpstr("z",&buffer, &buflen) ) break;
 
     /* the uid and gid are both the uid passed in */
     result_buf->pw_uid = uid;

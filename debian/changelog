@@ -1,3 +1,9 @@
+libnss-afs (2.01) unstable; urgency=low
+
+  * workaround for a bug in recent versions of pam_unix.so
+
+ -- Adam Megacz <adam@megacz.com>  Sun, 03 Jan 2010 06:29:16 +0000
+
 libnss-afs (2.0) unstable; urgency=low
 
   * return NOT_FOUND if invoked outside of nscd
